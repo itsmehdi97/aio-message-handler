@@ -9,8 +9,8 @@ from .handler import Handler
 
 def message_handler(*, 
         queue: str,
-        exchange: str,
-        binding_key: str
+        exchange: str = None,
+        binding_key: str = None
     ):
         def decorator(func: Callable[[IncomingMessage], None]):
             handler = Handler(

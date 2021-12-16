@@ -10,9 +10,9 @@ logger = getLogger(__name__)
 class Handler:
     def __init__(self, *,
         queue: str,
-        exchange: str,
-        binding_key: str,
         cb: Callable[[IncomingMessage], None],
+        exchange: str = None,
+        binding_key: str = None,
         prefetch_count: int = 1
     ):
         self.queue = queue

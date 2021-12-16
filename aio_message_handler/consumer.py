@@ -40,8 +40,8 @@ class Consumer(BaseConsumer):
             await self._run_in_bg(handler) 
             for handler in self.handlers]
         
-        await asyncio.wait(
-            self._tasks, return_when=asyncio.ALL_COMPLETED)
+        await asyncio.gather(
+            *self._tasks)
 
 
     async def _run_in_bg(self, handler: Handler) -> asyncio.Task:
@@ -49,19 +49,25 @@ class Consumer(BaseConsumer):
         async def job():
             async with conn.channel() as channel:
                 await channel.set_qos(prefetch_count=handler.prefetch_count)
-                try:
-                    exc = await channel.get_exchange(handler.exchange, ensure=True)
-                except aio_pika.exceptions.ChannelNotFoundEntity as _:
-                    raise exceptions.ExchangeNotFound
+                q = None
+                exc = None
+                if handler.exchange:
+                    try:
+                        exc = await channel.get_exchange(handler.exchange)
+                    except aio_pika.exceptions.ChannelNotFoundEntity as _:
+                        raise exceptions.ExchangeNotFound
 
-                q = await channel.declare_queue(
-                    name=handler.queue,
-                    durable=False,
-                    exclusive=False,
-                    passive=False,
-                    auto_delete=False)
+                    q = await channel.declare_queue(
+                        name=handler.queue,
+                        durable=False,
+                        exclusive=False,
+                        passive=False,
+                        auto_delete=False) 
 
-                await q.bind(exc, routing_key=handler.binding_key)
+                    await q.bind(exc, routing_key=handler.binding_key)
+                else:
+                    q = await channel.get_queue(handler.queue)
+
                 logger.info(f"{repr(handler)} started consuming...")
                 while True:
                     await q.consume(handler.cb)
