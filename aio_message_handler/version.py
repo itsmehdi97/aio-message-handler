@@ -1,9 +1,9 @@
 author_info = (("Mehdi Kamani", "itsmehdi97@gmail.com"),)
 
-package_info = "Wraper around the aio-pika for consumining messages."
-package_license = "MIT Software License"
+package_info = "asyncio compatible wraper around the aio-pika for consumining messages."
+package_license = "MIT License"
 
-team_email = "me@mosquito.su"
+team_email = "itsmehdi97@gmail.com"
 
 version_info = (0, 0, 1)
 
