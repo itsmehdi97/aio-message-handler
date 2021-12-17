@@ -1,6 +1,7 @@
+import abc
 import asyncio
-from abc import ABCMeta, abstractclassmethod
-from logging import getLogger
+import logging
+import functools
 from typing import Sequence, Callable
 
 import aio_pika
@@ -9,39 +10,66 @@ from .handler import Handler
 from . import exceptions
 
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
-class BaseConsumer(metaclass=ABCMeta):
-    handlers: Sequence[Callable] = []
+class BaseConsumer(metaclass=abc.ABCMeta):
+    _handlers: Sequence[Callable]
     _tasks: Sequence[asyncio.Task]
     _conn: aio_pika.RobustConnection
 
     def __init__(self, rmq_url: str):
         self.url = rmq_url
 
-    @classmethod
-    def add_handler(cls, handler: Handler):
-        cls.handlers.append(handler)
-        logger.info(f'registered handler: {repr(handler)}')
+        self._handlers = []
+        self._closed = False
+        self._conn = None
 
-    @abstractclassmethod
-    async def start_consuming(self):
+    def message_handler(self, *, 
+        queue: str,
+        exchange: str = None,
+        binding_key: str = None
+    ):
+        def decorator(func: Callable[[aio_pika.IncomingMessage], None]):
+            handler = Handler(
+                queue=queue,
+                exchange=exchange,
+                binding_key=binding_key,
+                cb=func)
+            self._handlers.append(handler)
+
+            @functools.wraps(func)
+            def _decorator(*args, **kwargs):
+                return func(*args, **kwargs)
+            return _decorator
+        return decorator
+
+    @abc.abstractclassmethod
+    async def start(self):
+        pass
+
+    @abc.abstractclassmethod
+    async def stop(self):
         pass
 
     
-class Consumer(BaseConsumer):
-    async def connect(self):
-        self._conn = await aio_pika.connect_robust(self.url)
-        
-    async def start_consuming(self):
-        await self.connect()
+class Consumer(BaseConsumer):        
+    async def start(self):
+        await self._connect()
         self.__class__._tasks = [
             await self._run_in_bg(handler) 
-            for handler in self.handlers]
+            for handler in self._handlers]
         
-        await asyncio.gather(
-            *self._tasks)
+        await asyncio.gather(*self._tasks)
+    
+    async def stop(self):
+        if self._closed:
+            return
+
+        return await self._conn.close()
+    
+    async def _connect(self):
+        self._conn = await aio_pika.connect_robust(self.url)
 
 
     async def _run_in_bg(self, handler: Handler) -> asyncio.Task:
