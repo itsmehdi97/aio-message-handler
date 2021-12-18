@@ -24,6 +24,9 @@ async def main():
 
 asyncio.run(main())
 ```
+### Versioning
+___
+This software follows [Semantic Versioning](https://semver.org/)
 ### Development
 
 #### Setting up development environment
