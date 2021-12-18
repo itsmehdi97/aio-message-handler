@@ -18,7 +18,7 @@ setup(
     long_description=open("README.md").read(),
     platforms="all",
     classifiers=[
-        "License :: OSI Approved :: MIT License"
+        "License :: OSI Approved :: MIT License",
         "Topic :: Internet",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries",
@@ -43,7 +43,7 @@ setup(
     python_requires=">=3.5, <4",
     extras_require={
         "develop": [
-            "aiomisc~=10.1.6",
+            "aio-pika",
             "async_generator",
             "coverage!=4.3",
             "coveralls",
