@@ -1,10 +1,10 @@
-# aio-message-handler
+## aio-message-handler
 A simple asyncio compatible consumer for handling amqp messages.
-## Installation
+### Installation
 ```
 pip install aio-message-handler
 ```
-## Usage example
+### Usage example
 Simple consmer:
 ``` python
 import asyncio
@@ -24,9 +24,9 @@ async def main():
 
 asyncio.run(main())
 ```
-## Development
+### Development
 
-### Setting up development environment
+#### Setting up development environment
 Clone the project:
 ```
 git clone https://github.com/itsmehdi97/aio-message-handler.git
