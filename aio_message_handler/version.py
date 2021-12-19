@@ -5,7 +5,7 @@ package_license = "MIT License"
 
 team_email = "itsmehdi97@gmail.com"
 
-version_info = (0, 0, 2)
+version_info = (0, 0, 3)
 
 __author__ = ", ".join("{} <{}>".format(*info) for info in author_info)
 __version__ = ".".join(map(str, version_info))
