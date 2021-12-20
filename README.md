@@ -41,5 +41,5 @@ source venv/bin/activate
 ```
 Install the requirements for [aio-message-handler](https://github.com/itsmehdi97/aio-message-handler):
 ```
-pip install -e `.[develop]`
+pip install -e '.[develop]'
 ```
