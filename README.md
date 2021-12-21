@@ -5,7 +5,7 @@ A simple asyncio compatible consumer for handling amqp messages.
 pip install aio-message-handler
 ```
 ### Usage example
-Simple consmer:
+Simple consumer:
 ``` python
 import asyncio
 
