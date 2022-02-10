@@ -48,13 +48,10 @@ class Handler:
         self._ready = True
         return queue
 
-    async def start(self, conn: aio_pika.Connection):
-        async def _job():
-            async with conn.channel() as channel:
-                queue = await self.setup(channel)
-                while True:
-                    await queue.consume(self.cb)
-        return asyncio.create_task(_job())
+    async def start(self, conn: aio_pika.Connection) -> asyncio.Task:
+        channel = await conn.channel()
+        queue = await self.setup(channel)
+        return asyncio.create_task(queue.consume(self.cb))
 
     async def stop(self):
         pass
