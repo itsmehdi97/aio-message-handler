@@ -35,7 +35,8 @@ class BaseConsumer(metaclass=abc.ABCMeta):
     def message_handler(self,
         queue: str = None,
         exchange: str = None,
-        binding_key: str = None
+        binding_key: str = None,
+        **kwargs
     ):
         def decorator(func: Callable[[aio_pika.IncomingMessage], None]):
             self._handlers.append(
@@ -43,7 +44,7 @@ class BaseConsumer(metaclass=abc.ABCMeta):
                     queue=queue or self._queue,
                     exchange=exchange or self._exchange,
                     binding_key=binding_key or self._binding_key,
-                    cb=func))
+                    cb=func, **kwargs))
 
             @functools.wraps(func)
             def _decorator(*args, **kwargs):
