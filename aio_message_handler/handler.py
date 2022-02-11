@@ -48,11 +48,11 @@ class Handler:
         self._ready = True
         return queue
 
-    async def start(self, conn: aio_pika.Connection) -> asyncio.Task:
+    async def start(self, conn: aio_pika.Connection):
         channel = await conn.channel()
         queue = await self.setup(channel)
-        return asyncio.create_task(queue.consume(self.cb))
-
+        await queue.consume(self.cb)
+        
     async def stop(self):
         pass
 

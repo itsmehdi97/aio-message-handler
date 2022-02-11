@@ -14,7 +14,6 @@ _log = logging.getLogger(__name__)
 
 class BaseConsumer(metaclass=abc.ABCMeta):
     _handlers: Sequence[Handler]
-    _tasks: Sequence[asyncio.Task]
     _conn: aio_pika.RobustConnection
 
     def __init__(self, amqp_url: str,
@@ -64,13 +63,11 @@ class BaseConsumer(metaclass=abc.ABCMeta):
 class Consumer(BaseConsumer):        
     async def start(self):
         conn = await self._connect()
-        _log.debug(f"starting {len(self._handlers)} background tasks...")
-        self._tasks = [
-            await handler.start(conn)
-            for handler in self._handlers]
-
         _log.debug(f"waiting for messages...")
-        await asyncio.gather(*self._tasks)
+        
+        [ await handler.start(conn)
+        for handler in self._handlers]
+
     
     async def stop(self):
         if self._closed:
