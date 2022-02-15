@@ -20,6 +20,7 @@ class Handler:
     ):
         self._ready = False
         self._name = cb.__name__
+        self._ctag = None
 
         self._queue = queue or uuid.uuid4().hex
         self._exchange = exchange
@@ -50,11 +51,12 @@ class Handler:
 
     async def start(self, conn: aio_pika.Connection):
         channel = await conn.channel()
-        queue = await self.setup(channel)
-        await queue.consume(self.cb)
-        
-    async def stop(self):
-        pass
+        self.queue = await self.setup(channel)
+        self._ctag = await self.queue.consume(self.cb)
+
+    async def stop(self, timeout=None, nowait: bool = False):
+        await self.queue.cancel(
+            self._ctag, timeout=timeout, nowait=nowait) 
 
     def __repr__(self):
         return f"{self.__name__} -> queue:{self._queue} bindingkey:{self.binding_key} exchange:{self._exchange}"

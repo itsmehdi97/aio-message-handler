@@ -28,7 +28,7 @@ class BaseConsumer(metaclass=abc.ABCMeta):
         self._binding_key = binding_key
 
         self._handlers = []
-        self._closed = False
+        self._stopped = False
         self._conn = None
 
     def message_handler(self,
@@ -62,21 +62,29 @@ class BaseConsumer(metaclass=abc.ABCMeta):
     
 class Consumer(BaseConsumer):        
     async def start(self):
-        conn = await self._connect()
+        self._conn = await self._connect()
         _log.debug(f"waiting for messages...")
         
-        [ await handler.start(conn)
+        [ await handler.start(self._conn)
         for handler in self._handlers]
 
-    
-    async def stop(self):
-        if self._closed:
+        self._stopped = False
+
+    async def stop(self, timeout=None, nowait: bool = False):
+        if self._stopped:
             return
 
         _log.debug(f"# stopping {len(self._handlers)} handlers...")
-        for handler in self._handlers:
-            await handler.stop()
+
+        await asyncio.gather(
+            *[handler.stop(timeout=timeout, nowait=nowait) for handler in self._handlers])
+        await self._conn.close()
+        
+        self._stopped = True
     
     async def _connect(self):
         _log.debug(f"# connecting to {self.url}")
         return await aio_pika.connect_robust(self.url)
+
+    def __del__(self):
+        _log.debug('consumer deleted.')
