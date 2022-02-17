@@ -8,6 +8,7 @@ pip install aio-message-handler
 Simple consumer:
 ``` python
 import asyncio
+import signal
 
 from aio_message_handler.consumer import Consumer
 
