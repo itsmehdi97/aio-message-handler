@@ -35,12 +35,14 @@ async def main():
     
     await consumer.start()
 
-try:
-    loop = asyncio.get_event_loop()
-    loop.create_task(main())
-    loop.run_forever()
-finally:
-    loop.close()
+
+if __name__ == "__main__":
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(main())
+        loop.run_forever()
+    finally:
+        loop.close()
 ```
 ## Versioning
 This software follows [Semantic Versioning](https://semver.org/)
