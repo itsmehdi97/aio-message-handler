@@ -4,8 +4,39 @@ A simple asyncio compatible consumer for handling amqp messages.
 ```
 pip install aio-message-handler
 ```
-### Usage example
-Simple consumer:
+### Usage examples
+Simple subscribe:
+``` python
+import asyncio
+import signal
+
+from aio_message_handler.consumer import Consumer
+
+
+async def main():
+    consumer = Consumer("amqp://guest:guest@127.0.0.1/")
+
+    @consumer.message_handler(
+        exchange="myexchange",
+        binding_key="key", 
+        prefetch_count=5)
+    async def handler(msg):
+        print('received:', msg.body)
+        msg.ack()
+    
+    await consumer.start()
+
+
+if __name__ == "__main__":
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(main())
+        loop.run_forever()
+    finally:
+        loop.close()
+```
+
+Gracefully shutting down the consumer:
 ``` python
 import asyncio
 import signal
@@ -28,7 +59,6 @@ async def main():
         loop.add_signal_handler(s, lambda s=s: asyncio.create_task(shutdown(s, loop)))
 
     @consumer.message_handler(
-        queue="myqueue",
         exchange="myexchange",
         binding_key="key", 
         prefetch_count=5)
