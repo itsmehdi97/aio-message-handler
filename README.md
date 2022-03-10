@@ -27,7 +27,11 @@ async def main():
     for s in signals:
         loop.add_signal_handler(s, lambda s=s: asyncio.create_task(shutdown(s, loop)))
 
-    @consumer.message_handler(exchange="myexchange", binding_key="key", prefetch_count=5)
+    @consumer.message_handler(
+        queue="myqueue",
+        exchange="myexchange",
+        binding_key="key", 
+        prefetch_count=5)
     async def handler(msg):
         print('received:', msg.body)
         msg.ack()
