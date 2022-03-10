@@ -16,7 +16,9 @@ class BaseConsumer(metaclass=abc.ABCMeta):
     _handlers: Sequence[Handler]
     _conn: aio_pika.RobustConnection
 
-    def __init__(self, amqp_url: str,
+    def __init__(
+        self,
+        amqp_url: str,
         queue: str = None,
         exchange: str = None,
         binding_key: str = None,
@@ -31,7 +33,8 @@ class BaseConsumer(metaclass=abc.ABCMeta):
         self._stopped = False
         self._conn = None
 
-    def message_handler(self,
+    def message_handler(
+        self,
         queue: str = None,
         exchange: str = None,
         binding_key: str = None,
@@ -59,14 +62,14 @@ class BaseConsumer(metaclass=abc.ABCMeta):
     async def stop(self):
         pass
 
-    
-class Consumer(BaseConsumer):        
+
+class Consumer(BaseConsumer):
     async def start(self):
         self._conn = await self._connect()
-        _log.debug(f"waiting for messages...")
-        
-        [ await handler.start(self._conn)
-        for handler in self._handlers]
+        _log.debug("waiting for messages...")
+
+        [await handler.start(self._conn)
+            for handler in self._handlers]
 
         self._stopped = False
 
@@ -77,11 +80,12 @@ class Consumer(BaseConsumer):
         _log.debug(f"# stopping {len(self._handlers)} handlers...")
 
         await asyncio.gather(
-            *[handler.stop(timeout=timeout, nowait=nowait) for handler in self._handlers])
+            *[handler.stop(timeout=timeout, nowait=nowait)
+                for handler in self._handlers])
         await self._conn.close()
-        
+
         self._stopped = True
-    
+
     async def _connect(self):
         _log.debug(f"# connecting to {self.url}")
         return await aio_pika.connect_robust(self.url)

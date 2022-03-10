@@ -39,7 +39,7 @@ setup(
     ],
     packages=find_packages(exclude=["tests"]),
     package_data={"aio_pika": ["py.typed"]},
-    install_requires=["aio-pika>=6.8.0,<9",],
+    install_requires=["aio-pika>=6.8.0,<9", ],
     python_requires=">=3.5, <4",
     extras_require={
         "develop": [

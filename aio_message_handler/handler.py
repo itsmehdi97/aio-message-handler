@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 import logging
 from typing import Callable
@@ -11,7 +10,8 @@ _log = logging.getLogger(__name__)
 
 
 class Handler:
-    def __init__(self,
+    def __init__(
+        self,
         queue: str = None,
         exchange: str = None,
         binding_key: str = None,
@@ -56,7 +56,9 @@ class Handler:
 
     async def stop(self, timeout=None, nowait: bool = False):
         await self.queue.cancel(
-            self._ctag, timeout=timeout, nowait=nowait) 
+            self._ctag, timeout=timeout, nowait=nowait)
 
     def __repr__(self):
-        return f"{self.__name__} -> queue:{self._queue} bindingkey:{self.binding_key} exchange:{self._exchange}"
+        return f"{self.__name__} -> queue:{self._queue}\n" + \
+            "bindingkey:{self.binding_key}\n" + \
+            "exchange:{self._exchange}"
