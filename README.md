@@ -22,7 +22,7 @@ async def main():
         prefetch_count=5)
     async def handler(msg):
         print('received:', msg.body)
-        msg.ack()
+        await msg.ack()
     
     await consumer.start()
 
@@ -64,7 +64,7 @@ async def main():
         prefetch_count=5)
     async def handler(msg):
         print('received:', msg.body)
-        msg.ack()
+        await msg.ack()
     
     await consumer.start()
 
