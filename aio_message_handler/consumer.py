@@ -2,9 +2,13 @@ import abc
 import asyncio
 import logging
 import functools
-from typing import Sequence, Callable
+from typing import List, Callable, TypeVar
 
 import aio_pika
+from aio_pika.abc import (
+    AbstractIncomingMessage,
+    AbstractConnection
+)
 
 from .handler import Handler
 
@@ -13,8 +17,8 @@ _log = logging.getLogger(__name__)
 
 
 class BaseConsumer(metaclass=abc.ABCMeta):
-    _handlers: Sequence[Handler]
-    _conn: aio_pika.RobustConnection
+    _handlers: List[Handler]
+    _conn: AbstractConnection
 
     def __init__(
         self,
@@ -31,40 +35,41 @@ class BaseConsumer(metaclass=abc.ABCMeta):
 
         self._handlers = []
         self._stopped = False
-        self._conn = None
 
     def message_handler(
         self,
         queue: str = None,
         exchange: str = None,
         binding_key: str = None,
-        **kwargs
-    ):
-        def decorator(func: Callable[[aio_pika.IncomingMessage], None]):
+        prefetch_count: int = 1
+    ) -> Callable:
+        T = TypeVar("T")
+        def decorator(func: Callable[[AbstractIncomingMessage], T]) -> Callable:
             self._handlers.append(
                 Handler(
+                    func,
                     queue=queue or self._queue,
                     exchange=exchange or self._exchange,
                     binding_key=binding_key or self._binding_key,
-                    cb=func, **kwargs))
+                    prefetch_count=prefetch_count))
 
             @functools.wraps(func)
-            def _decorator(*args, **kwargs):
-                return func(*args, **kwargs)
+            def _decorator(msg: AbstractIncomingMessage) -> T:
+                return func(msg)
             return _decorator
         return decorator
 
     @abc.abstractclassmethod
-    async def start(self):
+    async def start(self) -> None:
         pass
 
     @abc.abstractclassmethod
-    async def stop(self):
+    async def stop(self) -> None:
         pass
 
 
 class Consumer(BaseConsumer):
-    async def start(self):
+    async def start(self) -> None:
         self._conn = await self._connect()
         _log.debug("waiting for messages...")
 
@@ -73,7 +78,7 @@ class Consumer(BaseConsumer):
 
         self._stopped = False
 
-    async def stop(self, timeout=None, nowait: bool = False):
+    async def stop(self, timeout: int =None, nowait: bool = False) -> None:
         if self._stopped:
             return
 
@@ -86,9 +91,9 @@ class Consumer(BaseConsumer):
 
         self._stopped = True
 
-    async def _connect(self):
+    async def _connect(self) -> AbstractConnection:
         _log.debug(f"# connecting to {self.url}")
         return await aio_pika.connect_robust(self.url)
 
-    def __del__(self):
+    def __del__(self) -> None:
         _log.debug('consumer deleted.')

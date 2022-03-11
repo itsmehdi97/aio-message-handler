@@ -1,26 +1,35 @@
 import uuid
 import logging
-from typing import Callable
+from typing import Callable, Any
 
-from aio_pika import IncomingMessage
-import aio_pika
+from aio_pika.abc import (
+    AbstractIncomingMessage,
+    AbstractConnection,
+    AbstractQueue,
+    AbstractChannel,
+    AbstractExchange
+)
 
 
 _log = logging.getLogger(__name__)
 
 
 class Handler:
+    queue: AbstractQueue
+    exchange: AbstractExchange
+    _ctag: str
+    _name: str
+
     def __init__(
         self,
+        cb: Callable[[AbstractIncomingMessage], Any],
         queue: str = None,
         exchange: str = None,
         binding_key: str = None,
-        cb: Callable[[IncomingMessage], None] = None,
         prefetch_count: int = 1
     ):
         self._ready = False
         self._name = cb.__name__
-        self._ctag = None
 
         self._queue = queue or uuid.uuid4().hex
         self._exchange = exchange
@@ -28,14 +37,13 @@ class Handler:
         self.prefetch_count = prefetch_count
         self.cb = cb
 
-        self.queue = None
-        self.exchange = None
-
     @property
-    def ready(self):
+    def ready(self) -> bool:
         return self._ready
 
-    async def setup(self, channel: aio_pika.Channel) -> aio_pika.Queue:
+    async def setup(
+            self, channel: AbstractChannel
+            ) -> AbstractQueue:
         # TODO: handle signature conflicts.
         _log.debug(f"# setting up handler {self._name}")
 
@@ -49,16 +57,16 @@ class Handler:
         self._ready = True
         return queue
 
-    async def start(self, conn: aio_pika.Connection):
+    async def start(self, conn: AbstractConnection) -> None:
         channel = await conn.channel()
         self.queue = await self.setup(channel)
         self._ctag = await self.queue.consume(self.cb)
 
-    async def stop(self, timeout=None, nowait: bool = False):
+    async def stop(self, timeout: int = None, nowait: bool = False) -> None:
         await self.queue.cancel(
             self._ctag, timeout=timeout, nowait=nowait)
 
-    def __repr__(self):
-        return f"{self.__name__} -> queue:{self._queue}\n" + \
+    def __repr__(self) -> str:
+        return f"{self._name} -> queue:{self._queue}\n" + \
             "bindingkey:{self.binding_key}\n" + \
             "exchange:{self._exchange}"
