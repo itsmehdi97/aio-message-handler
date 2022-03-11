@@ -44,6 +44,7 @@ class BaseConsumer(metaclass=abc.ABCMeta):
         prefetch_count: int = 1
     ) -> Callable:
         T = TypeVar("T")
+
         def decorator(func: Callable[[AbstractIncomingMessage], T]) -> Callable:
             self._handlers.append(
                 Handler(
