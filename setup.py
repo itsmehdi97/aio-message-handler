@@ -49,6 +49,7 @@ setup(
             "coveralls",
             "pylava",
             "pytest",
+            "pytest-asyncio",
             "pytest-cov",
             "shortuuid",
             "nox",
