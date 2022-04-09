@@ -83,3 +83,55 @@ async def test_stopped_consumer_stop(
     assert stopped_consumer._stopped
     assert mock_close.call_count == 0
     assert mock_stop.call_count == 0
+
+
+def test_add_handler(
+    monkeypatch,
+    consumer: Consumer,
+    mock_handler
+):
+    monkeypatch.setattr("aio_message_handler.consumer.Handler", mock_handler)
+
+    add_handler = consumer.message_handler(
+        queue="queue",
+        exchange="exchange",
+        binding_key="key",
+        prefetch_count=1
+    )
+
+    def handler_functoin(msg):
+        pass
+    add_handler(handler_functoin)
+
+    assert len(consumer._handlers) == 1
+    mock_handler.assert_called_once_with(
+        handler_functoin,
+        queue="queue",
+        exchange="exchange",
+        binding_key="key",
+        prefetch_count=1
+    )
+
+
+def test_add_handler_without_confs(
+    monkeypatch,
+    consumer: Consumer,
+    mock_handler
+):
+    monkeypatch.setattr("aio_message_handler.consumer.Handler", mock_handler)
+
+    add_handler = consumer.message_handler()
+
+    def handler_functoin(msg):
+        pass
+
+    add_handler(handler_functoin)
+
+    mock_handler.assert_called_once_with(
+        handler_functoin,
+        queue=consumer._queue,
+        exchange=consumer._exchange,
+        binding_key=consumer._binding_key,
+        prefetch_count=1
+    )
+    assert len(consumer._handlers) == 1
