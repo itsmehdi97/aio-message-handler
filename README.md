@@ -1,4 +1,9 @@
 ## aio-message-handler
+![Tests](https://github.com/itsmehdi97/aio-message-handler/actions/workflows/tests.yml/badge.svg)
+![https://pypi.python.org/pypi/aio-message-handler/](https://img.shields.io/pypi/v/aio-message-handler.svg)
+![https://pypi.python.org/pypi/aio-message-handler/](https://img.shields.io/pypi/wheel/aio-message-handler.svg)
+![https://pypi.python.org/pypi/aio-message-handler/](https://img.shields.io/pypi/pyversions/aio-message-handler.svg)
+
 A simple asyncio compatible consumer for handling amqp messages.
 ### Installation
 ```
